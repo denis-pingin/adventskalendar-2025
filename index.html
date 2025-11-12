@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Psychedelischer Adventskalender</title>
+  <style>
+    :root {
+      --color-pink: #ff00ff;
+      --color-cyan: #00ffff;
+      --color-purple: #9d00ff;
+      --color-yellow: #ffff00;
+      --color-dark: #0a0a0a;
+      --transition-speed: 0.3s;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: var(--color-dark);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+      overflow-x: hidden;
+      position: relative;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    /* Animated psychedelic background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: 
+        repeating-conic-gradient(
+          from 0deg at 50% 50%,
+          var(--color-pink) 0deg,
+          var(--color-cyan) 15deg,
+          var(--color-purple) 30deg,
+          var(--color-yellow) 45deg,
+          var(--color-pink) 60deg
+        );
+      animation: rotate 20s linear infinite;
+      opacity: 0.3;
+      z-index: -1;
+      transform: translateZ(0);
+    }
+
+    @keyframes rotate {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Additional fractal-like overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(255, 0, 255, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 80% 50%, rgba(0, 255, 255, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 50% 20%, rgba(157, 0, 255, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 50% 80%, rgba(255, 255, 0, 0.2) 0%, transparent 50%);
+      animation: pulse 8s ease-in-out infinite;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 0.5;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.8;
+        transform: scale(1.1);
+      }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      margin-bottom: 2rem;
+      text-shadow: 
+        0 0 10px var(--color-pink),
+        0 0 20px var(--color-cyan),
+        0 0 30px var(--color-purple);
+      letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+
+    #calendar {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    @media (min-width: 768px) {
+      #calendar {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      #calendar {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 20px;
+      }
+    }
+
+    .door {
+      aspect-ratio: 1 / 1;
+      min-height: 120px;
+      background: linear-gradient(135deg, var(--color-pink), var(--color-cyan), var(--color-purple));
+      background-size: 200% 200%;
+      border: 3px solid rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      font-weight: bold;
+      cursor: pointer;
+      transition: all var(--transition-speed) ease;
+      position: relative;
+      overflow: hidden;
+      transform: translateZ(0);
+      box-shadow: 
+        0 4px 15px rgba(255, 0, 255, 0.3),
+        inset 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+
+    .door::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 70%
+      );
+      transform: rotate(45deg);
+      transition: transform 0.6s;
+    }
+
+    .door:hover:not(.disabled):not(.opened)::before {
+      animation: shine 1.5s infinite;
+    }
+
+    @keyframes shine {
+      0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+      }
+      100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+      }
+    }
+
+    .door:hover:not(.disabled):not(.opened) {
+      transform: scale(1.05) translateZ(0);
+      box-shadow: 
+        0 8px 25px rgba(255, 0, 255, 0.5),
+        0 0 40px rgba(0, 255, 255, 0.4),
+        inset 0 0 30px rgba(255, 255, 255, 0.2);
+    }
+
+    .door:active:not(.disabled):not(.opened) {
+      transform: scale(0.98) translateZ(0);
+    }
+
+    /* Active door pulsing glow */
+    .door:not(.disabled):not(.opened) {
+      animation: pulseGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% {
+        box-shadow: 
+          0 4px 15px rgba(255, 0, 255, 0.3),
+          inset 0 0 20px rgba(255, 255, 255, 0.1);
+      }
+      50% {
+        box-shadow: 
+          0 6px 25px rgba(255, 0, 255, 0.6),
+          0 0 30px rgba(0, 255, 255, 0.4),
+          inset 0 0 25px rgba(255, 255, 255, 0.15);
+      }
+    }
+
+    /* Disabled door styling */
+    .door.disabled {
+      background: repeating-linear-gradient(
+        45deg,
+        #333 0px,
+        #333 10px,
+        #444 10px,
+        #444 20px
+      );
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #666;
+      cursor: not-allowed;
+      opacity: 0.6;
+      animation: none;
+      box-shadow: none;
+    }
+
+    .door.disabled::before {
+      display: none;
+    }
+
+    /* Opened door styling */
+    .door.opened {
+      background: linear-gradient(135deg, #ffffff, #f0f0f0);
+      color: #000;
+      border-color: rgba(0, 0, 0, 0.2);
+      cursor: default;
+      animation: none;
+      box-shadow: 
+        0 2px 10px rgba(0, 0, 0, 0.2),
+        inset 0 0 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .door.opened::before {
+      display: none;
+    }
+
+    .door.opened a {
+      color: #000;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+      text-align: center;
+      padding: 10px;
+      display: block;
+      width: 100%;
+      transition: color var(--transition-speed);
+    }
+
+    .door.opened a:hover {
+      color: var(--color-purple);
+    }
+
+    /* Flip animation */
+    .door.flipping {
+      animation: flip 0.6s ease-in-out;
+    }
+
+    @keyframes flip {
+      0% {
+        transform: perspective(400px) rotateY(0);
+      }
+      50% {
+        transform: perspective(400px) rotateY(90deg);
+      }
+      100% {
+        transform: perspective(400px) rotateY(0);
+      }
+    }
+
+    /* Ensure touch targets are at least 44px */
+    @media (max-width: 767px) {
+      .door {
+        min-height: 140px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Psychedelischer Adventskalender</h1>
+    <div id="calendar"></div>
+  </div>
+
+  <script>
+    // Get effective date (current date or test date from URL)
+    function getEffectiveDate() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const testDate = urlParams.get('testDate');
+      
+      if (testDate) {
+        const parsed = new Date(testDate + 'T12:00:00');
+        if (!isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
+      
+      return new Date();
+    }
+
+    // Check if a door is active (can be opened)
+    function isDoorActive(day, effectiveDate) {
+      const currentMonth = effectiveDate.getMonth(); // 0-11, 11 = December
+      const currentDay = effectiveDate.getDate();
+      
+      // Only December doors are active
+      if (currentMonth !== 11) {
+        return false;
+      }
+      
+      // Door is active if current day >= door day
+      return currentDay >= day;
+    }
+
+    // Content array - 24 entries for December 1-24
+    const contents = [
+      { title: "Zoomquilt (Unendliches Zoom-Bild)", url: "http://zoomquilt.org/" },
+      { title: "Silk – Generative Kunst zeichnen", url: "http://weavesilk.com/" },
+      { title: "Neon Flames (farbige Nebel malen)", url: "https://29a.ch/sandbox/2011/neonflames/" },
+      { title: "Fractal Lab (3D-Fraktal-Explorer)", url: "https://experiments.withgoogle.com/fractal-lab" },
+      { title: "WebGL Fluid Simulation (Fluidkunst)", url: "https://paveldogreat.github.io/WebGL-Fluid-Simulation/" },
+      { title: "Patatap (Sound-Animation Sampler)", url: "https://www.patatap.com/" },
+      { title: "Plink (Musik-Jam mit Anderen)", url: "http://labs.dinahmoe.com/plink/" },
+      { title: "ToneMatrix (Ambient Sequencer)", url: "https://tonematrix.maxlaumeister.com/" },
+      { title: "Paint With Music (Zeichne Musik)", url: "https://artsandculture.google.com/experiment/paint-with-music/YAGuJyDB-XbbWg" },
+      { title: "Seaquence (Musikalisches Aquarium)", url: "https://seaquence.app/" },
+      { title: "Neural Frames (KI-Trippy Visuals)", url: "https://www.neuralframes.com/trippy-visuals" },
+      { title: "DeepDream Generator (Traumbilder)", url: "https://deepdreamgenerator.com/" },
+      { title: "MandalaGaba (Mandala-Zeichner)", url: "https://mandalagaba.com/" },
+      { title: "Inspirograph (Spirograph online)", url: "https://nathanfriend.io/inspirograph/" },
+      { title: "Strobe Illusion (Halluzinationseffekt)", url: "http://strobe.cool/" },
+      { title: "\"Neon Dreams\" Fraktal-Trip (Video)", url: "https://www.youtube.com/watch?v=QX2T1ZZdg0c" },
+      { title: "\"Interdimensional Travel\" Fraktalvideo", url: "https://www.youtube.com/watch?v=LkQEVhPlL5c" },
+      { title: "Electric Sheep (Fraktal-Flammen Video)", url: "https://archive.org/details/ElectricSheepFlames1080p" },
+      { title: "Video Riot (YouTube-Visual Mixer)", url: "http://sp0t.org/" },
+      { title: "Radar (Generative Musikfläche)", url: "https://lab.hakim.se/radar/" },
+      { title: "The Dilla Dimension (Interaktiver Kurzfilm)", url: "https://www.dilladimension.com/" },
+      { title: "Macchina1 (Generativer Musikautomat)", url: "http://5013.es/#/lab?id=machina1" },
+      { title: "Blob Opera (AI-Opernsänger)", url: "https://artsandculture.google.com/experiment/blob-opera/AAHWrq360NcGbw" },
+      { title: "Rumpetroll (Kaulquappen-Chatwelt)", url: "http://rumpetroll.com/" }
+    ];
+
+    // Get opened doors from localStorage
+    function getOpenedDoors() {
+      try {
+        const stored = localStorage.getItem('openedDoors');
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    // Save opened door to localStorage
+    function saveOpenedDoor(day) {
+      try {
+        const opened = getOpenedDoors();
+        if (!opened.includes(day)) {
+          opened.push(day);
+          localStorage.setItem('openedDoors', JSON.stringify(opened));
+        }
+      } catch (e) {
+        // Ignore localStorage errors
+      }
+    }
+
+    // Open a door
+    function openDoor(doorElement, day) {
+      if (doorElement.classList.contains('opened')) {
+        return;
+      }
+
+      const content = contents[day - 1];
+      if (!content) {
+        return;
+      }
+
+      // Add flipping animation
+      doorElement.classList.add('flipping');
+      
+      setTimeout(() => {
+        doorElement.classList.remove('flipping');
+        doorElement.classList.add('opened');
+        doorElement.innerHTML = `<a href="${content.url}" target="_blank" rel="noopener noreferrer">${content.title}</a>`;
+        saveOpenedDoor(day);
+      }, 300);
+    }
+
+    // Create and initialize calendar
+    function createCalendar() {
+      const calendarEl = document.getElementById('calendar');
+      const effectiveDate = getEffectiveDate();
+      const openedDoors = getOpenedDoors();
+
+      // Clear any existing doors
+      calendarEl.innerHTML = '';
+
+      // Create 24 doors
+      for (let day = 1; day <= 24; day++) {
+        const door = document.createElement('div');
+        door.classList.add('door');
+        door.setAttribute('data-day', day);
+
+        const isActive = isDoorActive(day, effectiveDate);
+        const wasOpened = openedDoors.includes(day);
+
+        if (!isActive) {
+          door.classList.add('disabled');
+          door.textContent = day;
+        } else if (wasOpened) {
+          // Restore opened state
+          const content = contents[day - 1];
+          if (content) {
+            door.classList.add('opened');
+            door.innerHTML = `<a href="${content.url}" target="_blank" rel="noopener noreferrer">${content.title}</a>`;
+          } else {
+            door.textContent = day;
+          }
+        } else {
+          door.textContent = day;
+          door.addEventListener('click', () => openDoor(door, day));
+          door.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            openDoor(door, day);
+          });
+        }
+
+        calendarEl.appendChild(door);
+      }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', createCalendar);
+  </script>
+</body>
+</html>
+
+
