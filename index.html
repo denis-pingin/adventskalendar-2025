@@ -817,6 +817,7 @@
     let touchStartX = 0;
     let touchStartY = 0;
     let isScrolling = false;
+    let touchAnimationFrame = null; // Animation frame for continuous touch effects
 
     function createCursorGlow(element) {
       if (cursorGlow) {
@@ -885,6 +886,41 @@
       }
       stopMagicEffects();
       currentDoor = null;
+    }
+
+    function startTouchAnimationLoop(element) {
+      // Stop any existing touch animation
+      stopTouchAnimationLoop();
+      
+      function animate() {
+        if (currentDoor === element && !isScrolling && 
+            !element.classList.contains('opening') && 
+            !element.classList.contains('opened')) {
+          const rect = element.getBoundingClientRect();
+          const x = mouseX - rect.left;
+          const y = mouseY - rect.top;
+          
+          // Check if touch is still within door bounds
+          if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+            createTrailParticle(element, x, y);
+            updateCursorGlow();
+            touchAnimationFrame = requestAnimationFrame(animate);
+          } else {
+            stopTouchAnimationLoop();
+          }
+        } else {
+          stopTouchAnimationLoop();
+        }
+      }
+      
+      touchAnimationFrame = requestAnimationFrame(animate);
+    }
+
+    function stopTouchAnimationLoop() {
+      if (touchAnimationFrame) {
+        cancelAnimationFrame(touchAnimationFrame);
+        touchAnimationFrame = null;
+      }
     }
 
     function startMagicEffects(element) {
@@ -1278,6 +1314,9 @@
               currentDoor = door;
               touchStartDoor = door; // Remember which door touch started on
               
+              // Start continuous touch animation loop
+              startTouchAnimationLoop(door);
+              
               // Start magic effects after 1.67 seconds of touching (50% faster)
               magicTimeout = setTimeout(() => {
                 if (currentDoor === door && door.classList.contains('touching') && !isScrolling) {
@@ -1309,6 +1348,7 @@
               if (currentDoor === door) {
                 door.classList.remove('touching');
                 stopTrailEffect();
+                stopTouchAnimationLoop();
                 setTimeout(() => {
                   door.classList.remove('hovering', 'hover-glow');
                 }, 100);
@@ -1334,6 +1374,7 @@
                 // Touch moved outside this door
                 door.classList.remove('touching');
                 stopTrailEffect();
+                stopTouchAnimationLoop();
                 setTimeout(() => {
                   door.classList.remove('hovering', 'hover-glow');
                 }, 300);
@@ -1354,6 +1395,7 @@
               e.preventDefault();
               door.classList.remove('touching');
               stopTrailEffect();
+              stopTouchAnimationLoop();
               // Small delay before removing hover effects for visual feedback
               setTimeout(() => {
                 door.classList.remove('hovering', 'hover-glow');
