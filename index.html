@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Psychedelischer Adventskalender</title>
+  <title>Psychedelischer Adventskalender 2025</title>
   <style>
     :root {
       --color-pink: #ff00ff;
@@ -249,6 +249,7 @@
       box-shadow: 
         0 2px 10px rgba(0, 0, 0, 0.2),
         inset 0 0 20px rgba(0, 0, 0, 0.05);
+      pointer-events: auto;
     }
 
     .door.opened::before {
@@ -265,6 +266,11 @@
       display: block;
       width: 100%;
       transition: color var(--transition-speed);
+      user-select: text;
+      -webkit-user-select: text;
+      pointer-events: auto;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
     }
 
     .door.opened a:hover {
@@ -298,7 +304,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Psychedelischer Adventskalender</h1>
+    <h1>Psychedelischer Adventskalender 2025</h1>
     <div id="calendar"></div>
   </div>
 
