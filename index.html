@@ -761,6 +761,9 @@
     let magicTimeout = null;
     let magicInterval = null;
     let touchStartDoor = null; // Track which door touch started on
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let isScrolling = false;
 
     function createCursorGlow(element) {
       if (cursorGlow) {
@@ -1014,73 +1017,118 @@
           
           // Mobile touch effects
           door.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            door.classList.add('touching', 'hovering', 'hover-glow');
             const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            isScrolling = false;
+            
             const rect = door.getBoundingClientRect();
             mouseX = touch.clientX;
             mouseY = touch.clientY;
             const x = mouseX - rect.left;
             const y = mouseY - rect.top;
-            createTrailParticle(door, x, y);
-            createCursorGlow(door);
-            currentDoor = door;
-            touchStartDoor = door; // Remember which door touch started on
             
-            // Start magic effects after 1.67 seconds of touching (50% faster)
-            magicTimeout = setTimeout(() => {
-              if (currentDoor === door && door.classList.contains('touching')) {
-                startMagicEffects(door);
-              }
-            }, 1670);
-          }, { passive: false });
+            // Only prevent default if touch is clearly inside door and not near edges
+            const margin = 10;
+            const isInside = x >= margin && x <= rect.width - margin && y >= margin && y <= rect.height - margin;
+            
+            if (isInside) {
+              door.classList.add('touching', 'hovering', 'hover-glow');
+              createTrailParticle(door, x, y);
+              createCursorGlow(door);
+              currentDoor = door;
+              touchStartDoor = door; // Remember which door touch started on
+              
+              // Start magic effects after 1.67 seconds of touching (50% faster)
+              magicTimeout = setTimeout(() => {
+                if (currentDoor === door && door.classList.contains('touching') && !isScrolling) {
+                  startMagicEffects(door);
+                }
+              }, 1670);
+            }
+          }, { passive: true });
           
           door.addEventListener('touchmove', (e) => {
-            e.preventDefault();
             const touch = e.touches[0];
             const rect = door.getBoundingClientRect();
             mouseX = touch.clientX;
             mouseY = touch.clientY;
             
-            // Check if touch is still within this door
-            const x = mouseX - rect.left;
-            const y = mouseY - rect.top;
-            const isInside = x >= 0 && x <= rect.width && y >= 0 && y <= rect.height;
+            // Detect if user is scrolling (moved more than 10px)
+            const deltaX = Math.abs(touch.clientX - touchStartX);
+            const deltaY = Math.abs(touch.clientY - touchStartY);
+            const movedDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
             
-            if (isInside && currentDoor === door) {
-              createTrailParticle(door, x, y);
-              updateCursorGlow();
-            } else if (currentDoor === door) {
-              // Touch moved outside this door
-              door.classList.remove('touching');
-              stopTrailEffect();
-              setTimeout(() => {
-                door.classList.remove('hovering', 'hover-glow');
-              }, 300);
-              currentDoor = null;
+            if (movedDistance > 10) {
+              isScrolling = true;
+              // User is scrolling, stop effects and allow scroll
+              if (currentDoor === door) {
+                door.classList.remove('touching');
+                stopTrailEffect();
+                setTimeout(() => {
+                  door.classList.remove('hovering', 'hover-glow');
+                }, 100);
+                currentDoor = null;
+                touchStartDoor = null;
+              }
+              return; // Allow default scroll behavior
+            }
+            
+            // Only prevent default if not scrolling and inside door
+            if (!isScrolling && currentDoor === door) {
+              e.preventDefault();
+              
+              // Check if touch is still within this door
+              const x = mouseX - rect.left;
+              const y = mouseY - rect.top;
+              const isInside = x >= 0 && x <= rect.width && y >= 0 && y <= rect.height;
+              
+              if (isInside) {
+                createTrailParticle(door, x, y);
+                updateCursorGlow();
+              } else {
+                // Touch moved outside this door
+                door.classList.remove('touching');
+                stopTrailEffect();
+                setTimeout(() => {
+                  door.classList.remove('hovering', 'hover-glow');
+                }, 300);
+                currentDoor = null;
+              }
             }
           }, { passive: false });
           
           door.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            door.classList.remove('touching');
-            stopTrailEffect();
-            // Small delay before removing hover effects for visual feedback
-            setTimeout(() => {
-              door.classList.remove('hovering', 'hover-glow');
-            }, 300);
+            if (isScrolling) {
+              // Was scrolling, don't open door
+              isScrolling = false;
+              touchStartDoor = null;
+              return;
+            }
             
-            // Only open if touch started and ended on the same door
-            if (touchStartDoor === door) {
-              openDoor(door, day);
+            if (currentDoor === door) {
+              e.preventDefault();
+              door.classList.remove('touching');
+              stopTrailEffect();
+              // Small delay before removing hover effects for visual feedback
+              setTimeout(() => {
+                door.classList.remove('hovering', 'hover-glow');
+              }, 300);
+              
+              // Only open if touch started and ended on the same door and wasn't scrolling
+              if (touchStartDoor === door && !isScrolling) {
+                openDoor(door, day);
+              }
             }
             touchStartDoor = null;
+            isScrolling = false;
           }, { passive: false });
           
           door.addEventListener('touchcancel', () => {
             door.classList.remove('touching', 'hovering', 'hover-glow');
             stopTrailEffect();
             touchStartDoor = null;
+            isScrolling = false;
           });
           
           // Click handler for desktop
