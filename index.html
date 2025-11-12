@@ -525,17 +525,6 @@
       pointer-events: none;
     }
 
-    /* Spiral animation */
-    @keyframes spiralRotate {
-      0% {
-        transform: translate(-50%, -50%) rotate(0deg) scale(0.5);
-        opacity: 1;
-      }
-      100% {
-        transform: translate(-50%, -50%) rotate(720deg) scale(2);
-        opacity: 0;
-      }
-    }
 
     /* Explosion animation */
     @keyframes explosionBurst {
@@ -549,19 +538,8 @@
       }
     }
 
-    /* Kaleidoscope animation */
-    @keyframes kaleidoscopeRotate {
-      0% {
-        transform: rotate(0deg) scale(0.8);
-        opacity: 0.8;
-      }
-      100% {
-        transform: rotate(360deg) scale(1.5);
-        opacity: 0;
-      }
-    }
 
-    /* Wave animation */
+    /* Wave animation - bigger waves */
     @keyframes waveExpand {
       0% {
         width: 0;
@@ -569,8 +547,8 @@
         opacity: 1;
       }
       100% {
-        width: 300px;
-        height: 300px;
+        width: 400px;
+        height: 400px;
         opacity: 0;
       }
     }
@@ -587,27 +565,8 @@
       }
     }
 
-    /* Color morph animation */
-    .door.color-morph-anim {
-      animation: colorMorph 1s ease-in-out;
-    }
 
-    @keyframes colorMorph {
-      0%, 100% {
-        filter: hue-rotate(0deg) brightness(1) saturate(1);
-      }
-      25% {
-        filter: hue-rotate(90deg) brightness(1.5) saturate(1.5);
-      }
-      50% {
-        filter: hue-rotate(180deg) brightness(2) saturate(2);
-      }
-      75% {
-        filter: hue-rotate(270deg) brightness(1.5) saturate(1.5);
-      }
-    }
-
-    /* Fractal animation */
+    /* Fractal animation - bigger */
     @keyframes fractalExpand {
       0% {
         width: 0;
@@ -615,46 +574,12 @@
         opacity: 1;
       }
       100% {
-        width: 250px;
-        height: 250px;
+        width: 350px;
+        height: 350px;
         opacity: 0;
       }
     }
 
-    /* Neon pulse animation */
-    .door.neon-pulse-anim {
-      animation: neonPulse 1s ease-in-out;
-    }
-
-    @keyframes neonPulse {
-      0%, 100% {
-        box-shadow: 
-          0 0 20px rgba(255, 0, 255, 0.8),
-          0 0 40px rgba(0, 255, 255, 0.6),
-          inset 0 0 30px rgba(255, 255, 255, 0.3);
-      }
-      25% {
-        box-shadow: 
-          0 0 40px rgba(255, 0, 255, 1),
-          0 0 80px rgba(0, 255, 255, 0.9),
-          0 0 120px rgba(255, 255, 0, 0.7),
-          inset 0 0 50px rgba(255, 255, 255, 0.5);
-      }
-      50% {
-        box-shadow: 
-          0 0 60px rgba(0, 255, 255, 1),
-          0 0 100px rgba(255, 0, 255, 1),
-          0 0 140px rgba(157, 0, 255, 0.9),
-          inset 0 0 60px rgba(255, 255, 255, 0.6);
-      }
-      75% {
-        box-shadow: 
-          0 0 40px rgba(255, 255, 0, 1),
-          0 0 80px rgba(255, 0, 255, 0.9),
-          0 0 120px rgba(0, 255, 255, 0.7),
-          inset 0 0 50px rgba(255, 255, 255, 0.5);
-      }
-    }
 
     @keyframes flipPsychedelic {
       0% {
@@ -941,12 +866,12 @@
         }
       }, 100);
       
-      // Start magic effects after 1.67 seconds of hovering (50% faster)
+      // Start magic effects after 0.835 seconds of hovering (half the time)
       magicTimeout = setTimeout(() => {
         if (currentDoor === element) {
           startMagicEffects(element);
         }
-      }, 1670);
+      }, 835);
     }
 
     function stopTrailEffect() {
@@ -963,6 +888,11 @@
     }
 
     function startMagicEffects(element) {
+      // Don't start magic if door is opening or opened
+      if (element.classList.contains('opening') || element.classList.contains('opened')) {
+        return;
+      }
+      
       // Remove any existing magic effects
       stopMagicEffects();
       
@@ -971,8 +901,14 @@
       
       // Create periodic particle bursts
       magicInterval = setInterval(() => {
-        if (currentDoor === element && element.classList.contains('magic-active')) {
+        if (currentDoor === element && 
+            element.classList.contains('magic-active') && 
+            !element.classList.contains('opening') && 
+            !element.classList.contains('opened')) {
           createMagicBurst(element);
+        } else {
+          // Stop if door is no longer eligible
+          stopMagicEffects();
         }
       }, 400);
     }
@@ -1058,197 +994,133 @@
       }, 1000);
     }
 
-    // Animation types for door opening
+    // Animation types for door opening (only good ones)
     const animationTypes = [
-      'spiral',
       'explosion',
-      'kaleidoscope',
       'wave',
       'particleSwarm',
-      'colorMorph',
-      'fractal',
-      'neonPulse'
+      'fractal'
     ];
 
-    // Create spiral animation
-    function createSpiralAnimation(element) {
-      const colors = ['#ff00ff', '#00ffff', '#9d00ff', '#ffff00'];
-      const spiral = document.createElement('div');
-      spiral.className = 'opening-animation spiral-anim';
-      spiral.style.position = 'absolute';
-      spiral.style.top = '50%';
-      spiral.style.left = '50%';
-      spiral.style.width = '200px';
-      spiral.style.height = '200px';
-      spiral.style.transform = 'translate(-50%, -50%)';
-      spiral.style.borderRadius = '50%';
-      spiral.style.border = `4px solid ${colors[Math.floor(Math.random() * colors.length)]}`;
-      spiral.style.borderTopColor = 'transparent';
-      spiral.style.borderRightColor = 'transparent';
-      spiral.style.animation = 'spiralRotate 1s ease-in-out forwards';
-      spiral.style.zIndex = '100';
-      element.appendChild(spiral);
-      setTimeout(() => spiral.remove(), 1000);
-    }
 
-    // Create explosion animation
+    // Create explosion animation - more particles, bigger, brighter
     function createExplosionAnimation(element) {
       const colors = ['#ff00ff', '#00ffff', '#9d00ff', '#ffff00'];
-      const rect = element.getBoundingClientRect();
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
       
-      for (let i = 0; i < 24; i++) {
+      for (let i = 0; i < 36; i++) {
         const particle = document.createElement('div');
         particle.className = 'opening-animation explosion-particle';
-        const angle = (Math.PI * 2 * i) / 24;
-        const distance = 100;
+        const angle = (Math.PI * 2 * i) / 36;
+        const distance = 150;
+        const color = colors[Math.floor(Math.random() * colors.length)];
         particle.style.position = 'absolute';
-        particle.style.width = '20px';
-        particle.style.height = '20px';
+        particle.style.width = '30px';
+        particle.style.height = '30px';
         particle.style.borderRadius = '50%';
-        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        particle.style.left = centerX + 'px';
-        particle.style.top = centerY + 'px';
+        particle.style.backgroundColor = color;
+        particle.style.boxShadow = `0 0 15px ${color}, 0 0 30px ${color}`;
+        particle.style.top = '50%';
+        particle.style.left = '50%';
         particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
         particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
-        particle.style.animation = 'explosionBurst 1s ease-out forwards';
+        particle.style.animation = 'explosionBurst 1.5s ease-out forwards';
         particle.style.zIndex = '100';
+        particle.style.opacity = '1';
         element.appendChild(particle);
-        setTimeout(() => particle.remove(), 1000);
+        setTimeout(() => particle.remove(), 1500);
       }
     }
 
-    // Create kaleidoscope animation
-    function createKaleidoscopeAnimation(element) {
-      const kaleidoscope = document.createElement('div');
-      kaleidoscope.className = 'opening-animation kaleidoscope-anim';
-      kaleidoscope.style.position = 'absolute';
-      kaleidoscope.style.top = '0';
-      kaleidoscope.style.left = '0';
-      kaleidoscope.style.width = '100%';
-      kaleidoscope.style.height = '100%';
-      kaleidoscope.style.background = `
-        repeating-conic-gradient(
-          from 0deg at 50% 50%,
-          #ff00ff 0deg,
-          #00ffff 30deg,
-          #9d00ff 60deg,
-          #ffff00 90deg,
-          #ff00ff 120deg
-        )
-      `;
-      kaleidoscope.style.opacity = '0.8';
-      kaleidoscope.style.animation = 'kaleidoscopeRotate 1s ease-in-out forwards';
-      kaleidoscope.style.zIndex = '100';
-      element.appendChild(kaleidoscope);
-      setTimeout(() => kaleidoscope.remove(), 1000);
-    }
 
-    // Create wave animation
+    // Create wave animation - bigger waves, thicker borders, brighter
     function createWaveAnimation(element) {
       const colors = ['#ff00ff', '#00ffff', '#9d00ff', '#ffff00'];
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 6; i++) {
         const wave = document.createElement('div');
         wave.className = 'opening-animation wave-anim';
+        const color = colors[Math.floor(Math.random() * colors.length)];
         wave.style.position = 'absolute';
         wave.style.top = '50%';
         wave.style.left = '50%';
         wave.style.width = '0';
         wave.style.height = '0';
         wave.style.borderRadius = '50%';
-        wave.style.border = `3px solid ${colors[Math.floor(Math.random() * colors.length)]}`;
+        wave.style.border = `6px solid ${color}`;
+        wave.style.boxShadow = `0 0 20px ${color}, 0 0 40px ${color}`;
         wave.style.transform = 'translate(-50%, -50%)';
-        wave.style.animation = `waveExpand 1s ease-out forwards`;
-        wave.style.animationDelay = `${i * 0.15}s`;
+        wave.style.animation = `waveExpand 1.5s ease-out forwards`;
+        wave.style.animationDelay = `${i * 0.2}s`;
         wave.style.zIndex = '100';
+        wave.style.opacity = '1';
         element.appendChild(wave);
-        setTimeout(() => wave.remove(), 1000 + i * 150);
+        setTimeout(() => wave.remove(), 1500 + i * 200);
       }
     }
 
-    // Create particle swarm animation
+    // Create particle swarm animation - starts from center, more particles, bigger, brighter
     function createParticleSwarmAnimation(element) {
       const colors = ['#ff00ff', '#00ffff', '#9d00ff', '#ffff00'];
-      const rect = element.getBoundingClientRect();
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
       
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 50; i++) {
         const particle = document.createElement('div');
         particle.className = 'opening-animation swarm-particle';
         const angle = Math.random() * Math.PI * 2;
-        const startRadius = Math.random() * 60;
-        const endRadius = 80 + Math.random() * 40;
+        const startRadius = 0; // Start from center
+        const endRadius = 120 + Math.random() * 60;
+        const color = colors[Math.floor(Math.random() * colors.length)];
         particle.style.position = 'absolute';
-        particle.style.width = '8px';
-        particle.style.height = '8px';
+        particle.style.width = '14px';
+        particle.style.height = '14px';
         particle.style.borderRadius = '50%';
-        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        particle.style.left = (centerX + Math.cos(angle) * startRadius) + 'px';
-        particle.style.top = (centerY + Math.sin(angle) * startRadius) + 'px';
+        particle.style.backgroundColor = color;
+        particle.style.boxShadow = `0 0 10px ${color}, 0 0 20px ${color}`;
+        particle.style.top = '50%';
+        particle.style.left = '50%';
         particle.style.setProperty('--end-x', (Math.cos(angle) * endRadius) + 'px');
         particle.style.setProperty('--end-y', (Math.sin(angle) * endRadius) + 'px');
-        particle.style.animation = `swarmMove 1s ease-out forwards`;
-        particle.style.animationDelay = `${Math.random() * 0.3}s`;
+        particle.style.animation = `swarmMove 1.5s ease-out forwards`;
+        particle.style.animationDelay = `${Math.random() * 0.2}s`;
         particle.style.zIndex = '100';
+        particle.style.opacity = '1';
         element.appendChild(particle);
-        setTimeout(() => particle.remove(), 1300);
+        setTimeout(() => particle.remove(), 1700);
       }
     }
 
-    // Create color morph animation
-    function createColorMorphAnimation(element) {
-      element.classList.add('color-morph-anim');
-      setTimeout(() => {
-        element.classList.remove('color-morph-anim');
-      }, 1000);
-    }
 
-    // Create fractal animation
+    // Create fractal animation - bigger, thicker, brighter
     function createFractalAnimation(element) {
       const colors = ['#ff00ff', '#00ffff', '#9d00ff', '#ffff00'];
-      const rect = element.getBoundingClientRect();
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
       
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 4; i++) {
         const fractal = document.createElement('div');
         fractal.className = 'opening-animation fractal-anim';
+        const color = colors[i % colors.length];
         fractal.style.position = 'absolute';
-        fractal.style.top = centerY + 'px';
-        fractal.style.left = centerX + 'px';
+        fractal.style.top = '50%';
+        fractal.style.left = '50%';
         fractal.style.width = '0';
         fractal.style.height = '0';
-        fractal.style.border = `2px solid ${colors[i]}`;
+        fractal.style.border = `5px solid ${color}`;
+        fractal.style.boxShadow = `0 0 25px ${color}, 0 0 50px ${color}`;
         fractal.style.borderRadius = '50%';
         fractal.style.transform = 'translate(-50%, -50%)';
-        fractal.style.animation = `fractalExpand 1s ease-out forwards`;
-        fractal.style.animationDelay = `${i * 0.2}s`;
+        fractal.style.animation = `fractalExpand 1.5s ease-out forwards`;
+        fractal.style.animationDelay = `${i * 0.25}s`;
         fractal.style.zIndex = '100';
+        fractal.style.opacity = '1';
         element.appendChild(fractal);
-        setTimeout(() => fractal.remove(), 1000 + i * 200);
+        setTimeout(() => fractal.remove(), 1500 + i * 250);
       }
     }
 
-    // Create neon pulse animation
-    function createNeonPulseAnimation(element) {
-      element.classList.add('neon-pulse-anim');
-      setTimeout(() => {
-        element.classList.remove('neon-pulse-anim');
-      }, 1000);
-    }
 
-    // Animation functions map
+    // Animation functions map (only good animations)
     const animationFunctions = {
-      'spiral': createSpiralAnimation,
       'explosion': createExplosionAnimation,
-      'kaleidoscope': createKaleidoscopeAnimation,
       'wave': createWaveAnimation,
       'particleSwarm': createParticleSwarmAnimation,
-      'colorMorph': createColorMorphAnimation,
-      'fractal': createFractalAnimation,
-      'neonPulse': createNeonPulseAnimation
+      'fractal': createFractalAnimation
     };
 
     // Open a door with randomized sequential animations
@@ -1262,29 +1134,35 @@
         return;
       }
 
-      // Stop any existing effects
+      // Stop any existing effects immediately
       stopTrailEffect();
       stopMagicEffects();
       
-      // Randomly select 4 different animations
+      // Mark door as opening to prevent new magic effects
+      doorElement.classList.add('opening');
+      
+      // Randomly select 3 different animations (no repeats)
       const selectedAnimations = [];
       const availableAnimations = [...animationTypes];
       
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 3 && availableAnimations.length > 0; i++) {
         const randomIndex = Math.floor(Math.random() * availableAnimations.length);
         selectedAnimations.push(availableAnimations[randomIndex]);
         availableAnimations.splice(randomIndex, 1);
       }
 
-      // Play animations sequentially
+      // Play animations sequentially without gaps
       let currentAnimationIndex = 0;
       
       function playNextAnimation() {
         if (currentAnimationIndex >= selectedAnimations.length) {
           // All animations complete, open the door
+          doorElement.classList.remove('opening');
           doorElement.classList.add('opened');
           doorElement.innerHTML = `<a href="${content.url}" target="_blank" rel="noopener noreferrer">${content.title}</a>`;
           saveOpenedDoor(day);
+          // Stop any magic effects that might still be running
+          stopMagicEffects();
           return;
         }
 
@@ -1296,7 +1174,8 @@
         }
 
         currentAnimationIndex++;
-        setTimeout(playNextAnimation, 1000); // Each animation runs for 1 second
+        // Start next animation when current one finishes (1.5s duration, no gap)
+        setTimeout(playNextAnimation, 1500);
       }
 
       // Start the animation sequence
