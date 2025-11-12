@@ -1337,49 +1337,77 @@
             mouseX = touch.clientX;
             mouseY = touch.clientY;
             
+            // Check if touch is still within this door
+            const x = mouseX - rect.left;
+            const y = mouseY - rect.top;
+            const isInside = x >= 0 && x <= rect.width && y >= 0 && y <= rect.height;
+            
             // Detect if user is scrolling (moved more than 10px)
             const deltaX = Math.abs(touch.clientX - touchStartX);
             const deltaY = Math.abs(touch.clientY - touchStartY);
             const movedDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
             
             if (movedDistance > 10) {
-              isScrolling = true;
-              // User is scrolling, stop effects and allow scroll
-              if (currentDoor === door) {
-                door.classList.remove('touching');
-                stopTrailEffect();
-                stopTouchAnimationLoop();
-                setTimeout(() => {
-                  door.classList.remove('hovering', 'hover-glow');
-                }, 100);
-                currentDoor = null;
-                touchStartDoor = null;
+              // User is scrolling
+              if (!isScrolling) {
+                // Just started scrolling, stop effects
+                isScrolling = true;
+                if (currentDoor === door) {
+                  door.classList.remove('touching');
+                  stopTrailEffect();
+                  stopTouchAnimationLoop();
+                  setTimeout(() => {
+                    door.classList.remove('hovering', 'hover-glow');
+                  }, 100);
+                  currentDoor = null;
+                }
               }
-              return; // Allow default scroll behavior
+              // Allow default scroll behavior
+              return;
             }
             
-            // Only prevent default if not scrolling and inside door
-            if (!isScrolling && currentDoor === door) {
+            // Not scrolling (or stopped scrolling)
+            if (isScrolling) {
+              // Was scrolling but now stopped, reset scroll state
+              isScrolling = false;
+            }
+            
+            // Restart effects if touch is inside door and not scrolling
+            if (isInside && !isScrolling) {
               e.preventDefault();
               
-              // Check if touch is still within this door
-              const x = mouseX - rect.left;
-              const y = mouseY - rect.top;
-              const isInside = x >= 0 && x <= rect.width && y >= 0 && y <= rect.height;
-              
-              if (isInside) {
+              // If effects aren't active, restart them
+              if (currentDoor !== door) {
+                door.classList.add('touching', 'hovering', 'hover-glow');
+                createCursorGlow(door);
+                currentDoor = door;
+                touchStartDoor = door;
+                startTouchAnimationLoop(door);
+                
+                // Restart magic timeout
+                if (magicTimeout) {
+                  clearTimeout(magicTimeout);
+                }
+                magicTimeout = setTimeout(() => {
+                  if (currentDoor === door && door.classList.contains('touching') && !isScrolling) {
+                    startMagicEffects(door);
+                  }
+                }, 1670);
+              } else {
+                // Effects already active, just update
                 createTrailParticle(door, x, y);
                 updateCursorGlow();
-              } else {
-                // Touch moved outside this door
-                door.classList.remove('touching');
-                stopTrailEffect();
-                stopTouchAnimationLoop();
-                setTimeout(() => {
-                  door.classList.remove('hovering', 'hover-glow');
-                }, 300);
-                currentDoor = null;
               }
+            } else if (!isInside && currentDoor === door) {
+              // Touch moved outside this door
+              e.preventDefault();
+              door.classList.remove('touching');
+              stopTrailEffect();
+              stopTouchAnimationLoop();
+              setTimeout(() => {
+                door.classList.remove('hovering', 'hover-glow');
+              }, 300);
+              currentDoor = null;
             }
           }, { passive: false });
           
