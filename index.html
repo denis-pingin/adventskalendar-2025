@@ -292,6 +292,14 @@
       animation: cursorPulse 1s ease-in-out infinite;
     }
 
+    /* Bigger cursor glow on mobile (double size) */
+    @media (max-width: 767px) {
+      .cursor-glow {
+        width: 120px;
+        height: 120px;
+      }
+    }
+
     @keyframes cursorPulse {
       0%, 100% {
         opacity: 0.6;
@@ -752,6 +760,7 @@
     let cursorGlow = null;
     let magicTimeout = null;
     let magicInterval = null;
+    let touchStartDoor = null; // Track which door touch started on
 
     function createCursorGlow(element) {
       if (cursorGlow) {
@@ -1016,6 +1025,7 @@
             createTrailParticle(door, x, y);
             createCursorGlow(door);
             currentDoor = door;
+            touchStartDoor = door; // Remember which door touch started on
             
             // Start magic effects after 1.67 seconds of touching (50% faster)
             magicTimeout = setTimeout(() => {
@@ -1031,10 +1041,24 @@
             const rect = door.getBoundingClientRect();
             mouseX = touch.clientX;
             mouseY = touch.clientY;
+            
+            // Check if touch is still within this door
             const x = mouseX - rect.left;
             const y = mouseY - rect.top;
-            createTrailParticle(door, x, y);
-            updateCursorGlow();
+            const isInside = x >= 0 && x <= rect.width && y >= 0 && y <= rect.height;
+            
+            if (isInside && currentDoor === door) {
+              createTrailParticle(door, x, y);
+              updateCursorGlow();
+            } else if (currentDoor === door) {
+              // Touch moved outside this door
+              door.classList.remove('touching');
+              stopTrailEffect();
+              setTimeout(() => {
+                door.classList.remove('hovering', 'hover-glow');
+              }, 300);
+              currentDoor = null;
+            }
           }, { passive: false });
           
           door.addEventListener('touchend', (e) => {
@@ -1045,12 +1069,18 @@
             setTimeout(() => {
               door.classList.remove('hovering', 'hover-glow');
             }, 300);
-            openDoor(door, day);
+            
+            // Only open if touch started and ended on the same door
+            if (touchStartDoor === door) {
+              openDoor(door, day);
+            }
+            touchStartDoor = null;
           }, { passive: false });
           
           door.addEventListener('touchcancel', () => {
             door.classList.remove('touching', 'hovering', 'hover-glow');
             stopTrailEffect();
+            touchStartDoor = null;
           });
           
           // Click handler for desktop
