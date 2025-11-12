@@ -988,12 +988,19 @@
         } else {
           door.textContent = day;
           
-          // Desktop hover effects with cursor tracking
+          // Desktop hover effects with cursor tracking (only for closed doors)
           door.addEventListener('mouseenter', () => {
-            door.classList.add('hovering', 'hover-glow');
+            if (!door.classList.contains('opened')) {
+              door.classList.add('hovering', 'hover-glow');
+            }
           });
           
           door.addEventListener('mousemove', (e) => {
+            // Only show effects on closed doors
+            if (door.classList.contains('opened')) {
+              return;
+            }
+            
             const rect = door.getBoundingClientRect();
             mouseX = e.clientX;
             mouseY = e.clientY;
@@ -1015,8 +1022,13 @@
             stopTrailEffect();
           });
           
-          // Mobile touch effects
+          // Mobile touch effects (only for closed doors)
           door.addEventListener('touchstart', (e) => {
+            // Don't show effects on opened doors
+            if (door.classList.contains('opened')) {
+              return;
+            }
+            
             const touch = e.touches[0];
             touchStartX = touch.clientX;
             touchStartY = touch.clientY;
@@ -1049,6 +1061,11 @@
           }, { passive: true });
           
           door.addEventListener('touchmove', (e) => {
+            // Don't show effects on opened doors
+            if (door.classList.contains('opened')) {
+              return;
+            }
+            
             const touch = e.touches[0];
             const rect = door.getBoundingClientRect();
             mouseX = touch.clientX;
