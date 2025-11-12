@@ -224,13 +224,16 @@
 
     .door:hover:not(.disabled):not(.opened),
     .door.touching:not(.disabled):not(.opened) {
-      transform: scale(1.08) translateZ(0);
-      box-shadow: 
-        0 8px 30px rgba(255, 0, 255, 0.7),
-        0 0 50px rgba(0, 255, 255, 0.6),
-        0 0 70px rgba(255, 255, 0, 0.4),
-        inset 0 0 40px rgba(255, 255, 255, 0.3);
-      animation: hoverGlow 2s ease-in-out infinite;
+      animation: doorPulse 1.2s ease-in-out infinite, hoverGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes doorPulse {
+      0%, 100% {
+        transform: scale(1.05) translateZ(0);
+      }
+      50% {
+        transform: scale(1.12) translateZ(0);
+      }
     }
 
     @keyframes hoverGlow {
