@@ -1413,6 +1413,7 @@
           door.addEventListener('touchcancel', () => {
             door.classList.remove('touching', 'hovering', 'hover-glow');
             stopTrailEffect();
+            stopTouchAnimationLoop();
             touchStartDoor = null;
             isScrolling = false;
           });
