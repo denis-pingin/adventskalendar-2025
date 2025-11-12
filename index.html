@@ -176,6 +176,11 @@
         inset 0 0 20px rgba(255, 255, 255, 0.1);
     }
 
+    .door.flipping,
+    .door.opening {
+      overflow: visible;
+    }
+
     .door::before {
       content: '';
       position: absolute;
@@ -296,20 +301,139 @@
       color: var(--color-purple);
     }
 
-    /* Flip animation */
+    /* Flip animation with psychedelic colors */
     .door.flipping {
-      animation: flip 0.6s ease-in-out;
+      animation: flipPsychedelic 0.8s ease-in-out;
+      position: relative;
+      overflow: visible;
+      z-index: 10;
     }
 
-    @keyframes flip {
+    @keyframes flipPsychedelic {
       0% {
-        transform: perspective(400px) rotateY(0);
+        transform: perspective(400px) rotateY(0) scale(1);
+        box-shadow: 
+          0 4px 15px rgba(255, 0, 255, 0.3),
+          inset 0 0 20px rgba(255, 255, 255, 0.1);
+      }
+      25% {
+        transform: perspective(400px) rotateY(45deg) scale(1.1);
+        box-shadow: 
+          0 0 40px rgba(255, 0, 255, 0.8),
+          0 0 60px rgba(0, 255, 255, 0.6),
+          inset 0 0 30px rgba(255, 255, 255, 0.3);
       }
       50% {
-        transform: perspective(400px) rotateY(90deg);
+        transform: perspective(400px) rotateY(90deg) scale(1.15);
+        box-shadow: 
+          0 0 60px rgba(255, 0, 255, 1),
+          0 0 80px rgba(0, 255, 255, 0.8),
+          0 0 100px rgba(255, 255, 0, 0.6),
+          inset 0 0 40px rgba(255, 255, 255, 0.5);
+      }
+      75% {
+        transform: perspective(400px) rotateY(135deg) scale(1.1);
+        box-shadow: 
+          0 0 40px rgba(157, 0, 255, 0.8),
+          0 0 60px rgba(255, 255, 0, 0.6),
+          inset 0 0 30px rgba(255, 255, 255, 0.3);
       }
       100% {
-        transform: perspective(400px) rotateY(0);
+        transform: perspective(400px) rotateY(0) scale(1);
+        box-shadow: 
+          0 2px 10px rgba(0, 0, 0, 0.2),
+          inset 0 0 20px rgba(0, 0, 0, 0.05);
+      }
+    }
+
+    /* Particle container */
+    .particles {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .particle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    @keyframes particleBurst {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(var(--tx), var(--ty)) scale(0);
+      }
+    }
+
+    /* Color explosion effect */
+    .door.opening {
+      animation: colorExplosion 0.6s ease-out;
+    }
+
+    @keyframes colorExplosion {
+      0% {
+        background: linear-gradient(135deg, var(--color-pink), var(--color-cyan), var(--color-purple));
+        filter: brightness(1);
+      }
+      25% {
+        background: linear-gradient(135deg, var(--color-cyan), var(--color-yellow), var(--color-pink));
+        filter: brightness(1.5) saturate(1.5);
+      }
+      50% {
+        background: linear-gradient(135deg, var(--color-yellow), var(--color-purple), var(--color-cyan));
+        filter: brightness(2) saturate(2);
+      }
+      75% {
+        background: linear-gradient(135deg, var(--color-purple), var(--color-pink), var(--color-yellow));
+        filter: brightness(1.5) saturate(1.5);
+      }
+      100% {
+        background: linear-gradient(135deg, #ffffff, #f0f0f0);
+        filter: brightness(1) saturate(1);
+      }
+    }
+
+    /* Ripple effect */
+    .door::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 0, 255, 0.6), transparent);
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .door.opening::after {
+      animation: ripple 0.8s ease-out;
+    }
+
+    @keyframes ripple {
+      0% {
+        width: 0;
+        height: 0;
+        opacity: 1;
+      }
+      100% {
+        width: 300px;
+        height: 300px;
+        opacity: 0;
       }
     }
 
@@ -408,6 +532,37 @@
       }
     }
 
+    // Create particle burst effect
+    function createParticleBurst(element) {
+      const colors = ['#ff00ff', '#00ffff', '#9d00ff', '#ffff00', '#ff00ff', '#00ffff'];
+      const particleCount = 20;
+      const particles = document.createElement('div');
+      particles.className = 'particles';
+      
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        const angle = (Math.PI * 2 * i) / particleCount;
+        const distance = 80 + Math.random() * 40;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+        
+        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.setProperty('--tx', tx + 'px');
+        particle.style.setProperty('--ty', ty + 'px');
+        particle.style.animation = `particleBurst ${0.6 + Math.random() * 0.4}s ease-out forwards`;
+        particle.style.animationDelay = `${Math.random() * 0.1}s`;
+        
+        particles.appendChild(particle);
+      }
+      
+      element.appendChild(particles);
+      
+      setTimeout(() => {
+        particles.remove();
+      }, 1000);
+    }
+
     // Open a door
     function openDoor(doorElement, day) {
       if (doorElement.classList.contains('opened')) {
@@ -419,15 +574,18 @@
         return;
       }
 
-      // Add flipping animation
-      doorElement.classList.add('flipping');
+      // Create particle burst
+      createParticleBurst(doorElement);
+      
+      // Add opening and flipping animations
+      doorElement.classList.add('opening', 'flipping');
       
       setTimeout(() => {
-        doorElement.classList.remove('flipping');
+        doorElement.classList.remove('opening', 'flipping');
         doorElement.classList.add('opened');
         doorElement.innerHTML = `<a href="${content.url}" target="_blank" rel="noopener noreferrer">${content.title}</a>`;
         saveOpenedDoor(day);
-      }, 300);
+      }, 800);
     }
 
     // Create and initialize calendar
